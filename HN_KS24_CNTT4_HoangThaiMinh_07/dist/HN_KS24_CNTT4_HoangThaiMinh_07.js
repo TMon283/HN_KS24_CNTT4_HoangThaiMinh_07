@@ -75,7 +75,7 @@ class Truck extends Vehicle {
     }
 }
 class Rental {
-    constructor(customer, vehicle, days, totalCost) {
+    constructor(customer, vehicle, days) {
         this.id = rentalId++;
         this.customer = customer;
         this.vehicle = vehicle;
@@ -83,7 +83,7 @@ class Rental {
         this.totalCost = vehicle.calculateRentalCost(days);
     }
     getDetails() {
-        return `Khách hàng thuê xe: ${this.customer} - Phương tiện thuê: ${this.vehicle} - Số ngày thuê: ${this.days} - Tổng chi phí: ${this.totalCost}`;
+        return `Khách hàng thuê xe: ${this.customer} - Loại xe: ${this.vehicle.type} - Số ngày thuê: ${this.days} - Tổng chi phí: ${this.totalCost}`;
     }
 }
 class RentalAgency {
@@ -100,28 +100,33 @@ class RentalAgency {
     }
     rentVehicle(customerId, vehicleId, days) {
         const customer = this.customers.find(c => c.id === customerId);
-        if (!customer)
+        const vehicle = this.vehicles.find(v => v.id === vehicleId && v.isAvailable);
+        if (!customer || !vehicle)
             return null;
-        const vehicle = this.vehicles.find(v => v.id === vehicleId);
-        if (!vehicle)
-            return null;
+        vehicle.rent();
+        const rental = new Rental(customer.name, vehicle, days);
+        this.rentals.push(rental);
+        return rental;
     }
     returnVehicle(vehicleId) {
         const vehicle = this.vehicles.find(v => v.id === vehicleId);
-        if (!vehicle && vehicle.isAvailable === false) {
-            console.log("Xe bạn muốn trả không phải xe của công ty");
+        if (!vehicle || vehicle.isAvailable) {
+            console.log("Xe bạn muốn trả không phải xe đang được thuê.");
         }
         else {
-            vehicle.isAvailable = true;
+            vehicle.returnVehicle();
         }
     }
     listAvailableVehicles() {
-        this.vehicles.filter(v => v.isAvailable === true).forEach(v => {
-            console.log(`Loại xe: ${v.type} - Giá cho thuê: ${v.rentalPricePerDay}/ngày`);
+        this.vehicles.filter(v => v.isAvailable).forEach(v => {
+            console.log(`Loại xe: ${v.type} - Giá thuê: ${v.rentalPricePerDay}/ngày`);
         });
     }
     listCustomerRentals(customerId) {
-        this.rentals.filter(r => r.id === customerId).forEach(r => {
+        const customer = this.customers.find(c => c.id === customerId);
+        if (!customer)
+            return;
+        this.rentals.filter(r => r.customer === customer.name).forEach(r => {
             console.log(r.getDetails());
         });
     }
@@ -130,8 +135,7 @@ class RentalAgency {
     }
     getVehicleTypeCount() {
         const counts = this.vehicles.reduce((acc, v) => {
-            const cat = v.type;
-            acc[cat] = (acc[cat] || 0) + 1;
+            acc[v.type] = (acc[v.type] || 0) + 1;
             return acc;
         }, {});
         console.log(counts);
@@ -144,7 +148,7 @@ class RentalAgency {
     getVehicleInsurance(vehicleId) {
         const vehicle = this.vehicles.find(v => v.id === vehicleId);
         if (vehicle)
-            console.log(vehicle.getInsurancePolicy);
+            console.log(vehicle.getInsurancePolicy());
     }
 }
 const rentalAgency = new RentalAgency();
@@ -178,4 +182,3 @@ console.log("Tính năng xe:");
 rentalAgency.getVehicleFeatures(3);
 console.log("Chính sách bảo hiểm:");
 rentalAgency.getVehicleInsurance(3);
-
