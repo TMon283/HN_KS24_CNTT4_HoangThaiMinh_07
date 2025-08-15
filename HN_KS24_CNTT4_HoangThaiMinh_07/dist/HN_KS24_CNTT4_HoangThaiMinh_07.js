@@ -178,3 +178,4 @@ console.log("Tính năng xe:");
 rentalAgency.getVehicleFeatures(3);
 console.log("Chính sách bảo hiểm:");
 rentalAgency.getVehicleInsurance(3);
+
