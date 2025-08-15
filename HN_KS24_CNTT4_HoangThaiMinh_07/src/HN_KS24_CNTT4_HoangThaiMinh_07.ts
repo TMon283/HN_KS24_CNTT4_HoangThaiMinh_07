@@ -42,22 +42,17 @@ abstract class Vehicle {
     }
 
     abstract calculateRentalCost(days: number): number;
-    abstract getFeatures(): string [];
+    abstract getFeatures(): string[];
     abstract getInsurancePolicy(): string;
 }
 
 class Car extends Vehicle {
-    feature: string[];
-    insurancePolicy: string;
-
-    constructor(type: string, rentalPricePerDay: number, isAvailable: boolean, feature: string[], insurancePolicy: string) {
+    constructor(type: string, rentalPricePerDay: number, isAvailable: boolean, public feature: string[], public insurancePolicy: string) {
         super(type, rentalPricePerDay, isAvailable);
-        this.feature = feature;
-        this.insurancePolicy = insurancePolicy;
     }
 
     calculateRentalCost(days: number): number {
-        return this.rentalPricePerDay*days;
+        return this.rentalPricePerDay * days;
     }
 
     getFeatures(): string[] {
@@ -70,17 +65,12 @@ class Car extends Vehicle {
 }
 
 class Motorcycle extends Vehicle {
-    feature: string[];
-    insurancePolicy: string;
-
-    constructor(type: string, rentalPricePerDay: number, isAvailable: boolean, feature: string[], insurancePolicy: string) {
+    constructor(type: string, rentalPricePerDay: number, isAvailable: boolean, public feature: string[], public insurancePolicy: string) {
         super(type, rentalPricePerDay, isAvailable);
-        this.feature = feature;
-        this.insurancePolicy = insurancePolicy;
     }
 
     calculateRentalCost(days: number): number {
-        return this.rentalPricePerDay*days;
+        return this.rentalPricePerDay * days;
     }
 
     getFeatures(): string[] {
@@ -93,17 +83,12 @@ class Motorcycle extends Vehicle {
 }
 
 class Truck extends Vehicle {
-    feature: string[];
-    insurancePolicy: string;
-
-    constructor(type: string, rentalPricePerDay: number, isAvailable: boolean, feature: string[], insurancePolicy: string) {
+    constructor(type: string, rentalPricePerDay: number, isAvailable: boolean, public feature: string[], public insurancePolicy: string) {
         super(type, rentalPricePerDay, isAvailable);
-        this.feature = feature;
-        this.insurancePolicy = insurancePolicy;
     }
 
     calculateRentalCost(days: number): number {
-        return this.rentalPricePerDay*days;
+        return this.rentalPricePerDay * days;
     }
 
     getFeatures(): string[] {
@@ -122,7 +107,7 @@ class Rental {
     public days: number;
     public totalCost: number;
 
-    constructor(customer: string, vehicle: Vehicle, days: number, totalCost: number) {
+    constructor(customer: string, vehicle: Vehicle, days: number) {
         this.id = rentalId++;
         this.customer = customer;
         this.vehicle = vehicle;
@@ -131,7 +116,7 @@ class Rental {
     }
 
     getDetails(): string {
-        return `Khách hàng thuê xe: ${this.customer} - Phương tiện thuê: ${this.vehicle} - Số ngày thuê: ${this.days} - Tổng chi phí: ${this.totalCost}`
+        return `Khách hàng thuê xe: ${this.customer} - Loại xe: ${this.vehicle.type} - Số ngày thuê: ${this.days} - Tổng chi phí: ${this.totalCost}`;
     }
 }
 
@@ -150,29 +135,35 @@ class RentalAgency {
 
     rentVehicle(customerId: number, vehicleId: number, days: number): Rental | null {
         const customer = this.customers.find(c => c.id === customerId);
-        if (!customer) return null;
-        const vehicle = this.vehicles.find(v => v.id === vehicleId);
-        if (!vehicle) return null;
-        
+        const vehicle = this.vehicles.find(v => v.id === vehicleId && v.isAvailable);
+
+        if (!customer || !vehicle) return null;
+
+        vehicle.rent();
+        const rental = new Rental(customer.name, vehicle, days);
+        this.rentals.push(rental);
+        return rental;
     }
 
     returnVehicle(vehicleId: number): void {
         const vehicle = this.vehicles.find(v => v.id === vehicleId);
-        if (!vehicle && vehicle.isAvailable === false) {
-            console.log("Xe bạn muốn trả không phải xe của công ty");
+        if (!vehicle || vehicle.isAvailable) {
+            console.log("Xe bạn muốn trả không phải xe đang được thuê.");
         } else {
-            vehicle.isAvailable = true;
+            vehicle.returnVehicle();
         }
     }
 
     listAvailableVehicles(): void {
-        this.vehicles.filter(v => v.isAvailable === true).forEach(v => {
-            console.log(`Loại xe: ${v.type} - Giá cho thuê: ${v.rentalPricePerDay}/ngày`);
+        this.vehicles.filter(v => v.isAvailable).forEach(v => {
+            console.log(`Loại xe: ${v.type} - Giá thuê: ${v.rentalPricePerDay}/ngày`);
         });
     }
 
     listCustomerRentals(customerId: number): void {
-        this.rentals.filter(r => r.id === customerId).forEach(r => {
+        const customer = this.customers.find(c => c.id === customerId);
+        if (!customer) return;
+        this.rentals.filter(r => r.customer === customer.name).forEach(r => {
             console.log(r.getDetails());
         });
     }
@@ -183,8 +174,7 @@ class RentalAgency {
 
     getVehicleTypeCount(): void {
         const counts = this.vehicles.reduce((acc, v) => {
-            const cat = v.type;
-            acc[cat] = (acc[cat] || 0) + 1;
+            acc[v.type] = (acc[v.type] || 0) + 1;
             return acc;
         }, {} as Record<string, number>);
         console.log(counts);
@@ -197,7 +187,7 @@ class RentalAgency {
 
     getVehicleInsurance(vehicleId: number): void {
         const vehicle = this.vehicles.find(v => v.id === vehicleId);
-        if (vehicle) console.log(vehicle.getInsurancePolicy);
+        if (vehicle) console.log(vehicle.getInsurancePolicy());
     }
 }
 
@@ -240,5 +230,6 @@ const foundVehicle = rentalAgency.vehicles.find(v => v.id === 2);
 // 10. Hiển thị tính năng xe và chính sách bảo hiểm
 console.log("Tính năng xe:");
 rentalAgency.getVehicleFeatures(3);
+
 console.log("Chính sách bảo hiểm:");
 rentalAgency.getVehicleInsurance(3);
