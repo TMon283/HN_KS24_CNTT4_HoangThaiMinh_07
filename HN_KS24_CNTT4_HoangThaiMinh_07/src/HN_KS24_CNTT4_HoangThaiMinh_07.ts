@@ -207,3 +207,38 @@ const rentalAgency = new RentalAgency();
 rentalAgency.addCustomer("Minh","lemonboy2k6@gmail.com","0332375399");
 
 // 2. Thêm phương tiện mới
+rentalAgency.addVehicle(new Car("Car", 500000, true, [], ""));
+rentalAgency.addVehicle(new Motorcycle("Motorcycle", 200000, true, [], ""));
+rentalAgency.addVehicle(new Truck("Truck", 800000, true, [], ""));
+
+// 3. Thuê xe 
+const rental = rentalAgency.rentVehicle(1, 1, 3);
+
+// 4. Trả xe
+const rentalback = rentalAgency.returnVehicle(1);
+
+// 5. Hiển thị danh sách xe còn trống
+console.log("Danh sách xe còn trống:");
+rentalAgency.listAvailableVehicles();
+
+// 6. Hiển thị danh sách hợp đồng của một khách hàng
+console.log("Hợp đồng của khách hàng:");
+rentalAgency.listCustomerRentals(1);
+
+// 7. Tính và hiển thị tổng doanh thu
+const totalMoney = rentalAgency.calculateTotalRevenue();
+console.log("Tổng doanh thu:", totalMoney);
+
+// 8. Đếm số lượng từng loại xe
+console.log("Số lượng từng loại xe:");
+rentalAgency.getVehicleTypeCount();
+
+// 9. Tìm kiếm và hiển thị thông tin bằng mã định danh
+const foundCustomer = rentalAgency.customers.find(c => c.id === 1);
+const foundVehicle = rentalAgency.vehicles.find(v => v.id === 2);
+
+// 10. Hiển thị tính năng xe và chính sách bảo hiểm
+console.log("Tính năng xe:");
+rentalAgency.getVehicleFeatures(3);
+console.log("Chính sách bảo hiểm:");
+rentalAgency.getVehicleInsurance(3);
